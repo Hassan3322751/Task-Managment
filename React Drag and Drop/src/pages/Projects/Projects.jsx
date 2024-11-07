@@ -24,7 +24,7 @@ const Projects = () => {
     } catch (error) {
       console.error('Failed to delete project:', error);
     }
-}
+  }
 
   // Function to handle adding the new task to a project
   const handleAddTask = async () => {

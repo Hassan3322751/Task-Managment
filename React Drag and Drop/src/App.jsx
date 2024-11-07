@@ -1,7 +1,8 @@
 // import { useState, useEffect } from "react";
-
-import "./App.css";
+import { Route, Routes } from "react-router-dom";
 import Projects from "./pages/Projects/Projects";
+import Project from "./pages/Project/Project";
+import "./App.css";
 // import TaskForm from "./components/TaskForm";
 // import TaskColumn from "./components/TaskColumn";
 // import todoIcon from "./assets/direct-hit.png";
@@ -24,7 +25,10 @@ const App = () => {
 
   return (
     <div className="app">
-      <Projects />
+      <Routes>
+        <Route path="/" element={<Projects />} />
+        <Route path="/project/:id" element={<Project />} />
+      </Routes>
       {/* <TaskForm setTasks={setTasks} />
       <main className="app_main">
         <TaskColumn

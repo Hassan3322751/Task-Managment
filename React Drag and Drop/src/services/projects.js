@@ -24,3 +24,12 @@ export const getProjects = async () => {
         console.log(error)
     }
 }
+
+export const getProject = async (id) => {
+    try {
+        const res = await axiosInstance.get(`/tasks/${id}`)
+        return res.data
+    } catch (error) {
+        console.log(error)
+    }
+}
