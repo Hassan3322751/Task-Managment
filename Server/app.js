@@ -5,8 +5,11 @@ const path = require("path");
 const cors = require("cors");
 require("dotenv").config();
 const authRoutes = require("./routes/authRoutes");
-const taskRoutes = require("./routes/taskRoutes");
 const profileRoutes = require("./routes/profileRoutes");
+const projectsRoutes = require("./routes/projectsRoutes");
+const stageRoutes = require("./routes/stageRoutes");
+const tasksRoutes = require("./routes/tasksRoutes");
+
 
 const User = require('./models/User');
 const Project = require('./models/Project');
@@ -94,7 +97,9 @@ mongoose.connect(mongoUrl, err => {
 // });
 
 app.use("/api/auth", authRoutes);
-app.use("/api/tasks", taskRoutes);
+app.use("/api/projects", projectsRoutes);
+app.use("/api/stages", stageRoutes);
+app.use("/api/tasks", tasksRoutes);
 app.use("/api/profile", profileRoutes);
 
 if (process.env.NODE_ENV === "production") {

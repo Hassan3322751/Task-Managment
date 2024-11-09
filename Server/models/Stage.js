@@ -17,6 +17,9 @@ const stageSchema = new mongoose.Schema({
       ref: 'Task', // References the Task model
     },
   ],
+  createdAt: {
+    type: Date
+  }
 });
 
 module.exports = mongoose.model('Stage', stageSchema);

@@ -1,11 +1,12 @@
 const Project = require("../models/Project");
+const Stage = require("../models/Stage");
 const { getCurrentDate } = require("../utils/getDate");
 
 
-exports.getTasks = async (req, res) => {
+exports.getProjects = async (req, res) => {
   try {
-    const tasks = await Project.find();
-    res.status(200).send(tasks);
+    const projects = await Project.find();
+    res.status(200).send(projects);
   }
   catch (err) {
     console.error(err);
@@ -13,17 +14,18 @@ exports.getTasks = async (req, res) => {
   }
 }
 
-exports.getTask = async (req, res) => {
+exports.getProject = async (req, res) => {
   try {
-    if (!req.params.taskId) {
-      return res.status(400).json({ status: false, msg: "Task id not valid" });
+    if (!req.params.projectId) {
+      return res.status(400).json({ status: false, msg: "Project id not valid" });
     }
 
-    const task = await Project.findOne({_id: req.params.taskId });
-    if (!task) {
-      return res.status(400).json({ status: false, msg: "No task found.." });
+    const project = await Project.findOne({_id: req.params.projectId });
+    if (!project) {
+      return res.status(400).json({ status: false, msg: "No project found.." });
     }
-    res.status(200).send(task);
+
+    res.status(200).send(project);
   }
   catch (err) {
     console.error(err);
@@ -31,7 +33,7 @@ exports.getTask = async (req, res) => {
   }
 }
 
-exports.postTask = async (req, res) => {
+exports.postProject = async (req, res) => {
   const {name, description} = req.body;
 
   try {
@@ -42,7 +44,7 @@ exports.postTask = async (req, res) => {
     });
  
     await newProject.save();
-    res.status(201);
+    res.status(201).send(newProject);
   }
   catch (err) {
     console.error(err);
@@ -50,7 +52,7 @@ exports.postTask = async (req, res) => {
   }
 }
 
-exports.putTask = async (req, res) => {
+exports.putProject = async (req, res) => {
   try {
     const { description } = req.body;
     if (!description) {
@@ -61,17 +63,13 @@ exports.putTask = async (req, res) => {
       return res.status(400).json({ status: false, msg: "Task id not valid" });
     }
 
-    let task = await Task.findById(req.params.taskId);
-    if (!task) {
+    let project = await Project.findById(req.params.taskId);
+    if (!project) {
       return res.status(400).json({ status: false, msg: "Task with given id not found" });
     }
 
-    if (task.user != req.user.id) {
-      return res.status(403).json({ status: false, msg: "You can't update task of another user" });
-    }
-
-    task = await Task.findByIdAndUpdate(req.params.taskId, { description }, { new: true });
-    res.status(200).json({ task, status: true, msg: "Task updated successfully.." });
+    project = await Project.findByIdAndUpdate(req.params.projectId, { description }, { new: true });
+    res.status(200).json({ project, status: true, msg: "Task updated successfully.." });
   }
   catch (err) {
     console.error(err);
@@ -80,7 +78,7 @@ exports.putTask = async (req, res) => {
 }
 
 
-exports.deleteTask = async (req, res) => {
+exports.deleteProject = async (req, res) => {
   try {
     if (!req.params.projectId) {
       return res.status(400).json({ status: false, msg: "Task id not valid" });
@@ -93,7 +91,7 @@ exports.deleteTask = async (req, res) => {
 
     await Project.findByIdAndDelete(req.params.projectId);
     res.status(200).json({ status: true, msg: "Task deleted successfully.." });
-  }
+  } 
   catch (err) {
     console.error(err);
     return res.status(500).json({ status: false, msg: "Internal Server Error" });

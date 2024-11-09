@@ -7,7 +7,7 @@ import { addProject, getProjects, deleteProject } from "../../services/projects"
 const Projects = () => {
   const [projects, setProjects] = useState([])
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [newTask, setNewTask] = useState({ name: "", description: "" });
+  const [newProject, setNewProject] = useState({ name: "", description: "" });
 
   useEffect(() => {
     const fnc = async() => {
@@ -15,7 +15,7 @@ const Projects = () => {
       setProjects(projects)
     }
     fnc()
-  }, [newTask])
+  }, [])
 
   const handleDelete = async (id) => {
     try {
@@ -27,11 +27,11 @@ const Projects = () => {
   }
 
   // Function to handle adding the new task to a project
-  const handleAddTask = async () => {
-    setProjects([...projects, { name: newTask.name, description: newTask.description }]);
-    setNewTask({ name: "", description: "" });
+  const handleAddProject = async () => {
     setIsModalOpen(false);
-    await addProject(newTask)
+    let addedProject = await addProject(newProject)
+    setProjects(prevProjects => [...prevProjects, addedProject]);
+    setNewProject({ name: "", description: "" });
   };
 
   return (
@@ -40,7 +40,7 @@ const Projects = () => {
         onClick={() => setIsModalOpen(true)} 
         className="bg-blue-500 text-white p-2 rounded"
       >
-          Add Task
+          Add Project
       </button>
       <div className="projects" style={{display: 'flex', flexWrap: 'wrap'}}>
         {
@@ -64,15 +64,15 @@ const Projects = () => {
               <input
                 type="text"
                 placeholder="Task name"
-                value={newTask.name}
-                onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
+                value={newProject.name}
+                onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
                 className="border p-2 w-full mb-4"
               />
 
               <textarea
                 placeholder="Task Description"
-                value={newTask.description}
-                onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
+                value={newProject.description}
+                onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
                 className="border p-2 w-full mb-4"
               ></textarea>
 
@@ -83,7 +83,7 @@ const Projects = () => {
                 >
                   Cancel
                 </button>
-                <button onClick={handleAddTask} className="bg-blue-500 text-white p-2 rounded">
+                <button onClick={handleAddProject} className="bg-blue-500 text-white p-2 rounded">
                   Add Task
                 </button>
               </div>

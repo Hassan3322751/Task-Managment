@@ -7,16 +7,16 @@
     margin: 15px 0;
 }
 
+.card_header{
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+}
+
 .task_text {
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 15px;
-}
-
-.task_card_bottom_line {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
 }
 
 .task_delete {

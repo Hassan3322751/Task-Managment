@@ -1,0 +1,40 @@
+.task_column{
+    border: 1px solid grey;
+    box-sizing: border-box;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+.task_column_heading {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+}
+
+.task_column_icon {
+    width: 30px;
+    margin-right: 5px;
+}
+
+.stage_delete{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+}
+
+.stage_delete:hover {
+    background-color: #ebebeb;
+}
+
+.delete_icon {
+    width: 20px;
+    opacity: 50%;
+    transition: all 0.3s ease-in-out;
+}
+
+.stage_delete:hover .delete_icon {
+    opacity: 80%;
+}

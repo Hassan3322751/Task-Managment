@@ -14,12 +14,15 @@ const taskSchema = new mongoose.Schema({
     ref: 'Stage', // References the Stage model
     required: true,
   },
-  dueDate: {
-    type: Date,
-  },
   assignedUser: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User', // References the User model
+  },
+  dueDate: {
+    type: Date,
+  },
+  createdAt: {
+    type: Date,
   },
 });
 
