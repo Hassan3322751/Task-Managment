@@ -5,6 +5,9 @@ import { getProject } from "../../services/projects";
 import StageColumn from "../../components/Stage/StageColumn";
 import { addStage, deleteStage, getStage } from "../../services/stages";
 
+import { DragDropContext } from "react-beautiful-dnd";
+import { updateTaskOrder, updateTaskStage } from "../../services/tasks";
+
 const Project = () => {
     const { id } = useParams();
     const [project, setProject] = useState(null)
@@ -54,6 +57,73 @@ const Project = () => {
             console.error('Failed to delete project:', error);
           }
     }
+
+    const handleDragEnd = async (result) => {
+        const {destination, source, draggableId} = result
+        if (!destination) return;
+        if (
+          source.droppableId === destination.droppableId &&
+          source.index === destination.index
+        )
+          return;
+
+        try {
+            setStages((prevStages) => {
+                const newStages = [...prevStages];
+            
+                // Find the source and destination stages
+                const sourceStage = newStages.find((stage) => stage._id === source.droppableId);
+                const destinationStage = newStages.find((stage) => stage._id === destination.droppableId);
+            
+                const sourceTaskIds = Array.from(sourceStage.taskIds);
+                const destinationTaskIds = Array.from(destinationStage.taskIds);
+            
+                if (source.droppableId === destination.droppableId) {
+                  const [movedTaskId] = sourceTaskIds.splice(source.index, 1);
+                  sourceTaskIds.splice(destination.index, 0, movedTaskId);
+            
+                  const updatedStages = newStages.map((stage) => {
+                    if (stage._id === sourceStage._id) {
+                      return { ...stage, taskIds: sourceTaskIds };
+                    }
+                    return stage;
+                  });
+            
+                  return updatedStages;
+                }
+            
+                // If moving to a different stage
+                else {
+                  const [movedTaskId] = sourceTaskIds.splice(source.index, 1);
+                  destinationTaskIds.splice(destination.index, 0, movedTaskId);
+            
+                  const updatedStages = newStages.map((stage) => {
+                    if (stage._id === sourceStage._id) {
+                      return { ...stage, taskIds: sourceTaskIds };
+                    } else if (stage._id === destinationStage._id) {
+                      return { ...stage, taskIds: destinationTaskIds };
+                    }
+                    return stage;
+                  });
+            
+                  return updatedStages;
+                }
+              });
+
+          } catch (error) {
+            console.error("Failed to update task stage:", error);
+          }
+
+          try {
+            if (source.droppableId !== destination.droppableId) {
+              await updateTaskStage(draggableId, destination.droppableId, destination.index);
+            } else {
+              await updateTaskOrder(draggableId, destination.index);
+            }
+          } catch (error) {
+            console.error("Failed to update task stage/order in backend:", error);
+          }
+    }
     return(
         <React.Fragment>
             <p>Project - {id}</p>
@@ -66,17 +136,19 @@ const Project = () => {
                 Add Stage
             </button>
             <div className="stages">
-            {
-                stages && stages.map((stage, index) => (
-                    <StageColumn
+            <DragDropContext onDragEnd={handleDragEnd}>
+                {
+                    stages && stages.map((stage, index) => (
+                        <StageColumn
                         key={index} 
                         id={stage._id}
                         title={stage.name}
                         taskIds={stage.taskIds}
                         handleDelete={handleDelete}
-                    />
-                ))
-            }
+                        />
+                    ))
+                }
+            </DragDropContext>
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
