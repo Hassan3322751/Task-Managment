@@ -36,9 +36,9 @@ export const updateTaskStage = async (taskId, stageId, position) => {
     }
 }
 
-export const updateTaskOrder = async (taskId, position) => {
+export const updateTaskOrder = async (taskId, updatedStage) => {
     try {
-        const res = await axiosInstance.put(`/tasks/updateOrder`, {taskId, position})
+        const res = await axiosInstance.put(`/tasks/updateOrder`, {taskId, updatedStage})
         return res.data
     } catch (error) {
         console.log(error)
@@ -49,9 +49,10 @@ export const getTasksByStage = async (stageId, page) => {
     try {
         const res = await axiosInstance.get(`/tasks`,  {
             params: { stageId, page }
-          })
+        })
         return res.data
     } catch (error) {
         console.log(error)
+        return []
     }
 }

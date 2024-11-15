@@ -4,8 +4,6 @@ import { useParams } from "react-router-dom";
 import { getProject } from "../../services/projects";
 import StageColumn from "../../components/Stage/StageColumn";
 import { addStage, deleteStage, getStage } from "../../services/stages";
-
-import { DragDropContext } from "react-beautiful-dnd";
 import { updateTaskOrder, updateTaskStage } from "../../services/tasks";
 
 const Project = () => {
@@ -14,6 +12,12 @@ const Project = () => {
     const [stages, setStages] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newStage, setNewStage] = useState({ name: "" });
+
+    const [activeCard, setActiveCard] = useState({
+      stageId: null,
+      stageIndex: null,
+      cardId: null,
+    })
     
     const fetchProject = async () => {
         try {
@@ -58,77 +62,84 @@ const Project = () => {
           }
     }
 
-    const handleDragEnd = async (result) => {
-        const {destination, source, draggableId} = result
-        if (!destination) return;
-        if (
-          source.droppableId === destination.droppableId &&
-          source.index === destination.index
-        )
-          return;
+    const onDrop = (destination, source) => {
+      const {activeCard} = source;
 
-        try {
-            setStages((prevStages) => {
-                const newStages = [...prevStages];
-            
-                // Find the source and destination stages
-                const sourceStage = newStages.find((stage) => stage._id === source.droppableId);
-                const destinationStage = newStages.find((stage) => stage._id === destination.droppableId);
-            
-                const sourceTaskIds = Array.from(sourceStage.taskIds);
-                const destinationTaskIds = Array.from(destinationStage.taskIds);
-            
-                if (source.droppableId === destination.droppableId) {
-                  const [movedTaskId] = sourceTaskIds.splice(source.index, 1);
-                  sourceTaskIds.splice(destination.index, 0, movedTaskId);
-            
-                  const updatedStages = newStages.map((stage) => {
-                    if (stage._id === sourceStage._id) {
-                      return { ...stage, taskIds: sourceTaskIds };
-                    }
-                    return stage;
-                  });
-            
-                  return updatedStages;
-                }
-            
-                // If moving to a different stage
-                else {
-                  const [movedTaskId] = sourceTaskIds.splice(source.index, 1);
-                  destinationTaskIds.splice(destination.index, 0, movedTaskId);
-            
-                  const updatedStages = newStages.map((stage) => {
-                    if (stage._id === sourceStage._id) {
-                      return { ...stage, taskIds: sourceTaskIds };
-                    } else if (stage._id === destinationStage._id) {
-                      return { ...stage, taskIds: destinationTaskIds };
-                    }
-                    return stage;
-                  });
-            
-                  return updatedStages;
-                }
-              });
+      if (!destination) return;
+      if (
+        activeCard.stageId === destination.id &&
+        activeCard.stageIndex === destination.index
+      )
+      return;
 
+      try {
+          setStages((prevStages) => {
+              const newStages = [...prevStages];
+          
+              // Find the source and destination stages
+              const sourceStage = newStages.find((stage) => stage._id === activeCard.stageId);
+              const destinationStage = newStages.find((stage) => stage._id === destination.id);
+              console.log(sourceStage, destinationStage)
+              
+              const sourceTaskIds = Array.from(sourceStage.taskIds);
+              const destinationTaskIds = Array.from(destinationStage.taskIds);
+              
+              if (activeCard.stageId === destination.id) {
+                const [movedTaskId] = sourceTaskIds.splice(activeCard.stageIndex, 1);
+                sourceTaskIds.splice(destination.index, 0, movedTaskId);
+                
+                const updatedStages = newStages.map((stage) => {
+                  if (stage._id === sourceStage._id) {
+                    return { ...stage, taskIds: sourceTaskIds };
+                  }
+                  return stage;
+                });
+          
+                return updatedStages;
+              }
+              
+              // If moving to a different stage
+              else {
+                const [movedTaskId] = sourceTaskIds.splice(activeCard.stageIndex, 1);
+                destinationTaskIds.splice(destination.index, 0, movedTaskId);
+                console.log(sourceTaskIds, destinationTaskIds)
+          
+                const updatedStages = newStages.map((stage) => {
+                  if (stage._id === sourceStage._id) {
+                    return { ...stage, taskIds: sourceTaskIds };
+                  } else if (stage._id === destinationStage._id) {
+                    return { ...stage, taskIds: destinationTaskIds };
+                  }
+                  return stage;
+                });
+          
+                return updatedStages;
+              }
+            });
+            
           } catch (error) {
             console.error("Failed to update task stage:", error);
           }
-
-          try {
-            if (source.droppableId !== destination.droppableId) {
+        }
+        
+          const handleDragEnd = async (result) => {
+                try {
+                    if (source.droppableId !== destination.droppableId) {
               await updateTaskStage(draggableId, destination.droppableId, destination.index);
-            } else {
-              await updateTaskOrder(draggableId, destination.index);
-            }
-          } catch (error) {
-            console.error("Failed to update task stage/order in backend:", error);
+          } else {
+            await updateTaskOrder(draggableId, destination.index);
           }
-    }
+        } catch (error) {
+          console.error("Failed to update task stage/order in backend:", error);
+        }
+  }
+
     return(
         <React.Fragment>
             <p>Project - {id}</p>
             <p>Project Name - {project && project.name}</p>
             <p>Project Description - {project && project.description}</p>
+            <p>Task Id - {activeCard.cardId}</p>
             <button 
                 onClick={() => setIsModalOpen(true)} 
                 className="bg-blue-500 text-white p-2 rounded"
@@ -136,19 +147,20 @@ const Project = () => {
                 Add Stage
             </button>
             <div className="stages">
-            <DragDropContext onDragEnd={handleDragEnd}>
-                {
-                    stages && stages.map((stage, index) => (
-                        <StageColumn
-                        key={index} 
-                        id={stage._id}
-                        title={stage.name}
-                        taskIds={stage.taskIds}
-                        handleDelete={handleDelete}
-                        />
-                    ))
-                }
-            </DragDropContext>
+            {
+              stages && stages.map((stage, index) => (
+                <StageColumn
+                  key={index} 
+                  id={stage._id}
+                  title={stage.name}
+                  taskIds={stage.taskIds}
+                  handleDelete={handleDelete}
+                  setActiveCard={setActiveCard}
+                  activeCard={activeCard}
+                  onDrop={onDrop}
+                />
+              ))
+            }
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">

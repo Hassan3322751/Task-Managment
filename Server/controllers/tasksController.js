@@ -4,26 +4,69 @@ const Task = require("../models/Task");
 const { getCurrentDate } = require("../utils/getDate");
 
 exports.getTasks = async (req, res) => {
-  const { stageId, page } = req.query;
+  const { stageId, page = 1 } = req.query;
   const limit = 3;
-  
-  try {
-    const tasks = await Task.find({ stageId })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .exec();
 
-    const totalTasks = await Task.countDocuments({ stageId });
+  try {
+    // Find the stage and retrieve taskIds
+    const stage = await Stage.findById(stageId);
+    if (!stage) {
+      return res.status(404).json({ msg: 'Stage not found' });
+    }
+
+    // Calculate the start and end indices for pagination
+    const startIndex = (page - 1) * limit;
+    const endIndex = page * limit;
+
+    // Slice the taskIds array for the current page
+    const taskIdsForPage = stage.taskIds.slice(startIndex, endIndex);
+
+    // Retrieve tasks using the sliced array of IDs
+    const tasks = await Task.find({ _id: { $in: taskIdsForPage } }).exec();
+
+    // Manually sort the tasks according to the order in taskIdsForPage
+    const orderedTasks = taskIdsForPage.map((id) => 
+      tasks.find((task) => task._id.equals(id))
+    );
+
+    // Calculate pagination info
+    const totalTasks = stage.taskIds.length;
+    const totalPages = Math.ceil(totalTasks / limit);
+    const hasMore = page < totalPages;
+
     res.status(200).json({
-      tasks,
+      tasks: orderedTasks,
       currentPage: page,
-      totalPages: Math.ceil(totalTasks / limit),
-      hasMore: page * limit < totalTasks,
+      totalPages,
+      hasMore,
     });
   } catch (err) {
+    console.error("Error fetching tasks:", err);
     res.status(500).json({ msg: 'Error fetching tasks', error: err.message });
   }
-}
+};
+
+// exports.getTasks = async (req, res) => {
+//   const { stageId, page } = req.query;
+//   const limit = 3;
+  
+//   try {
+//     const tasks = await Task.find({ stageId })
+//       .skip((page - 1) * limit)
+//       .limit(limit)
+//       .exec();
+
+//     const totalTasks = await Task.countDocuments({ stageId });
+//     res.status(200).json({
+//       tasks,
+//       currentPage: page,
+//       totalPages: Math.ceil(totalTasks / limit),
+//       hasMore: page * limit < totalTasks,
+//     });
+//   } catch (err) {
+//     res.status(500).json({ msg: 'Error fetching tasks', error: err.message });
+//   }
+// }
 
 exports.getTask = async (req, res) => {  
   try {
@@ -103,14 +146,13 @@ exports.updateTaskStage = async (req, res) => {
     const task = await Task.findById(taskId);
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
+    const oldStageObjectId = mongoose.Types.ObjectId(oldStageId);
+    const taskObjectId = mongoose.Types.ObjectId(taskId);
+    
     const oldStageId = task.stageId; 
     task.stageId = stageId; 
     
     await task.save();
-
-    const oldStageObjectId = mongoose.Types.ObjectId(oldStageId);
-    const taskObjectId = mongoose.Types.ObjectId(taskId);
-
     await Stage.findByIdAndUpdate(oldStageObjectId, { $pull: { taskIds: taskObjectId } });
 
     const destinationStage = await Stage.findById(stageId);
@@ -127,19 +169,18 @@ exports.updateTaskStage = async (req, res) => {
 };
 
 exports.updateTaskOrder = async (req, res) => {
-  const { taskId, position } = req.body; 
+  let { taskId, updatedStage } = req.body; 
 
   try {
+    if (typeof taskId === 'string') taskId = mongoose.Types.ObjectId(taskId);
+
     const task = await Task.findById(taskId);
     if (!task) return res.status(404).json({ message: 'Task not found' });
-
+    
     const stage = await Stage.findById(task.stageId);
+    
     if (!stage) return res.status(404).json({ message: 'Stage not found' });
-    const currentIndex = stage.taskIds.indexOf(task._id);
-    if (currentIndex === -1) return res.status(400).json({ message: 'Task not found in stage' });
-
-    stage.taskIds.splice(currentIndex, 1);
-    stage.taskIds.splice(position, 0, task._id);
+    stage.taskIds = updatedStage.taskIds
 
     await stage.save();
 
