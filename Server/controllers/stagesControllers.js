@@ -31,7 +31,7 @@ exports.postStage = async (req, res) => {
       name: stage,
       projectId,
       taskIds: [],
-      createdAt: getCurrentDate(),
+      // createdAt: getCurrentDate(),
     });
     project.stages.push(newStage._id)
     await newStage.save();

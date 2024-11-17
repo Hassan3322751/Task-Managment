@@ -11,7 +11,12 @@ const projectSchema = new mongoose.Schema({
     required: true,
   },
   createdAt: {
-    type: Date
+    type: String, // Assuming you want the date as a string
+    default: () => {
+      const today = new Date();
+      const dateOnly = today.toISOString().split('T')[0];
+      return dateOnly;
+    }
   },
   stages: [
     {

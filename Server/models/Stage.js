@@ -18,8 +18,13 @@ const stageSchema = new mongoose.Schema({
     },
   ],
   createdAt: {
-    type: Date
-  }
+    type: String, // Assuming you want the date as a string
+    default: () => {
+      const today = new Date();
+      const dateOnly = today.toISOString().split('T')[0];
+      return dateOnly;
+    }
+  },
 });
 
 module.exports = mongoose.model('Stage', stageSchema);

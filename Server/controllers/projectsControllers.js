@@ -40,7 +40,7 @@ exports.postProject = async (req, res) => {
     const newProject = new Project({
       name,
       description,
-      createdAt: getCurrentDate(),
+      // createdAt: getCurrentDate(),
     });
  
     await newProject.save();

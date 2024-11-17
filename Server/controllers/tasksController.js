@@ -98,7 +98,7 @@ exports.postTask = async (req, res) => {
         description: description,
         dueDate: dueDate,
         stageId,
-        createdAt: getCurrentDate(),
+        // createdAt: getCurrentDate(),
     });
 
     
@@ -141,24 +141,24 @@ exports.deleteTask = async (req, res) => {
 
 exports.updateTaskStage = async (req, res) => {
   const { taskId, stageId, position } = req.body;
-
+  console.log(taskId, stageId, position)
   try {
     const task = await Task.findById(taskId);
     if (!task) return res.status(404).json({ message: 'Task not found' });
 
-    const oldStageObjectId = mongoose.Types.ObjectId(oldStageId);
+    const oldStageObjectId = mongoose.Types.ObjectId(task.stageId);
     const taskObjectId = mongoose.Types.ObjectId(taskId);
     
     const oldStageId = task.stageId; 
-    task.stageId = stageId; 
-    
-    await task.save();
     await Stage.findByIdAndUpdate(oldStageObjectId, { $pull: { taskIds: taskObjectId } });
-
+    
     const destinationStage = await Stage.findById(stageId);
     if (!destinationStage) return res.status(404).json({ message: 'Destination stage not found' });
     
     destinationStage.taskIds.splice(position, 0, task._id);
+    task.stageId = stageId;  
+    
+    await task.save();
     await destinationStage.save();
 
     res.json({ message: 'Task stage updated successfully', task });

@@ -18,6 +18,7 @@ const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCa
         const data = await getTasksByStage(id, page);
         // data.tasks ? setTasks([...data.tasks]) : setTasks([])
         setTasks([...data.tasks]);
+        console.log(tasks)
         setHasMore(data.hasMore); 
     } catch (error) {
         console.error("Error fetching tasks:", error);

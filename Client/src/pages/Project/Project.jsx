@@ -38,7 +38,7 @@ const Project = () => {
 
     useEffect(() => {
           fetchProject();
-    }, [id, setStages]);
+    }, [id, stages]);
 
     const handleAddStage = async () => {  
         if (newStage.name.trim() === "") return;
@@ -62,77 +62,141 @@ const Project = () => {
           }
     }
 
-    const onDrop = (destination, source) => {
-      const {activeCard} = source;
-
+    const onDrop = async (destination, source) => {
+      const { activeCard } = source;
+    
       if (!destination) return;
+    
       if (
         activeCard.stageId === destination.id &&
         activeCard.stageIndex === destination.index
-      )
-      return;
-
+      ) {
+        return;
+      }
+    
       try {
-          setStages((prevStages) => {
-              const newStages = [...prevStages];
-          
-              // Find the source and destination stages
-              const sourceStage = newStages.find((stage) => stage._id === activeCard.stageId);
-              const destinationStage = newStages.find((stage) => stage._id === destination.id);
-              console.log(sourceStage, destinationStage)
-              
-              const sourceTaskIds = Array.from(sourceStage.taskIds);
-              const destinationTaskIds = Array.from(destinationStage.taskIds);
-              
-              if (activeCard.stageId === destination.id) {
-                const [movedTaskId] = sourceTaskIds.splice(activeCard.stageIndex, 1);
-                sourceTaskIds.splice(destination.index, 0, movedTaskId);
-                
-                const updatedStages = newStages.map((stage) => {
-                  if (stage._id === sourceStage._id) {
-                    return { ...stage, taskIds: sourceTaskIds };
-                  }
-                  return stage;
-                });
-          
-                return updatedStages;
-              }
-              
-              // If moving to a different stage
-              else {
-                const [movedTaskId] = sourceTaskIds.splice(activeCard.stageIndex, 1);
-                destinationTaskIds.splice(destination.index, 0, movedTaskId);
-                console.log(sourceTaskIds, destinationTaskIds)
-          
-                const updatedStages = newStages.map((stage) => {
-                  if (stage._id === sourceStage._id) {
-                    return { ...stage, taskIds: sourceTaskIds };
-                  } else if (stage._id === destinationStage._id) {
-                    return { ...stage, taskIds: destinationTaskIds };
-                  }
-                  return stage;
-                });
-          
-                return updatedStages;
-              }
-            });
-            
-          } catch (error) {
-            console.error("Failed to update task stage:", error);
-          }
-        }
-        
-          const handleDragEnd = async (result) => {
-                try {
-                    if (source.droppableId !== destination.droppableId) {
-              await updateTaskStage(draggableId, destination.droppableId, destination.index);
+        setStages((prevStages) => {
+          const newStages = [...prevStages];
+    
+          // Find the source and destination stages
+          const sourceStage = newStages.find((stage) => stage._id === activeCard.stageId);
+          const destinationStage = newStages.find((stage) => stage._id === destination.id);
+    
+          const sourceTaskIds = Array.from(sourceStage.taskIds);
+          const destinationTaskIds = Array.from(destinationStage.taskIds);
+    
+          if (activeCard.stageId === destination.id) {
+            const [movedTaskId] = sourceTaskIds.splice(activeCard.stageIndex, 1);
+            sourceTaskIds.splice(destination.index, 0, movedTaskId);
           } else {
-            await updateTaskOrder(draggableId, destination.index);
+            const [movedTaskId] = sourceTaskIds.splice(activeCard.stageIndex, 1);
+            destinationTaskIds.splice(destination.index, 0, movedTaskId);
           }
-        } catch (error) {
-          console.error("Failed to update task stage/order in backend:", error);
+    
+          // Update frontend state
+          const updatedStages = newStages.map((stage) => {
+            if (stage._id === sourceStage._id) {
+              return { ...stage, taskIds: sourceTaskIds };
+            } else if (stage._id === destinationStage._id) {
+              return { ...stage, taskIds: destinationTaskIds };
+            }
+            return stage;
+          });
+    
+          // Update backend based on the move
+          handleDragEnd(activeCard.cardId, sourceStage._id, destination.id, destination.index);
+    
+          return updatedStages;
+        });
+      } catch (error) {
+        console.error("Failed to update task stage:", error);
+      }
+    };
+    
+    const handleDragEnd = async (taskId, sourceStageId, destinationStageId, newIndex) => {
+      try {
+        if (sourceStageId !== destinationStageId) {
+          await updateTaskStage(taskId, destinationStageId, newIndex);
+        } else {
+          await updateTaskOrder(taskId, newIndex);
         }
-  }
+      } catch (error) {
+        console.error("Failed to update task stage/order in backend:", error);
+      }
+    };
+    
+
+  //   const onDrop = (destination, source) => {
+  //     const {activeCard} = source;
+
+  //     if (!destination) return;
+  //     if (
+  //       activeCard.stageId === destination.id &&
+  //       activeCard.stageIndex === destination.index
+  //     )
+  //     return;
+
+  //     try {
+  //         setStages((prevStages) => {
+  //             const newStages = [...prevStages];
+          
+  //             // Find the source and destination stages
+  //             const sourceStage = newStages.find((stage) => stage._id === activeCard.stageId);
+  //             const destinationStage = newStages.find((stage) => stage._id === destination.id);
+  //             console.log(sourceStage, destinationStage)
+              
+  //             const sourceTaskIds = Array.from(sourceStage.taskIds);
+  //             const destinationTaskIds = Array.from(destinationStage.taskIds);
+              
+  //             if (activeCard.stageId === destination.id) {
+  //               const [movedTaskId] = sourceTaskIds.splice(activeCard.stageIndex, 1);
+  //               sourceTaskIds.splice(destination.index, 0, movedTaskId);
+                
+  //               const updatedStages = newStages.map((stage) => {
+  //                 if (stage._id === sourceStage._id) {
+  //                   return { ...stage, taskIds: sourceTaskIds };
+  //                 }
+  //                 return stage;
+  //               });
+          
+  //               return updatedStages;
+  //             }
+              
+  //             // If moving to a different stage
+  //             else {
+  //               const [movedTaskId] = sourceTaskIds.splice(activeCard.stageIndex, 1);
+  //               destinationTaskIds.splice(destination.index, 0, movedTaskId);
+  //               console.log(sourceTaskIds, destinationTaskIds)
+          
+  //               const updatedStages = newStages.map((stage) => {
+  //                 if (stage._id === sourceStage._id) {
+  //                   return { ...stage, taskIds: sourceTaskIds };
+  //                 } else if (stage._id === destinationStage._id) {
+  //                   return { ...stage, taskIds: destinationTaskIds };
+  //                 }
+  //                 return stage;
+  //               });
+          
+  //               return updatedStages;
+  //             }
+  //           });
+            
+  //         } catch (error) {
+  //           console.error("Failed to update task stage:", error);
+  //         }
+  //       }
+        
+  //         const handleDragEnd = async (result) => {
+  //               try {
+  //                   if (source.droppableId !== destination.droppableId) {
+  //             await updateTaskStage(draggableId, destination.droppableId, destination.index);
+  //         } else {
+  //           await updateTaskOrder(draggableId, destination.index);
+  //         }
+  //       } catch (error) {
+  //         console.error("Failed to update task stage/order in backend:", error);
+  //       }
+  // }
 
     return(
         <React.Fragment>
