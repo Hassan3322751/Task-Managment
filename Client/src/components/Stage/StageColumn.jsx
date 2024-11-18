@@ -5,7 +5,7 @@ import { addTask, deleteTask, getTasksByStage } from "../../services/tasks";
 import deleteIcon from '../../assets/delete.png'
 import DropArea from "../DropArea/DropArea"
 
-const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCard, onDrop }) => {
+const StageColumn = ({ key, id, title, taskIds, handleDelete, activeCard, setActiveCard, stageData, onDrop }) => {
     const [tasks, setTasks] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [newTask, setNewTask] = useState({ name: "", description: "", dueDate: null });
@@ -16,9 +16,7 @@ const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCa
     const fetchProject = async (page) => {
       try {
         const data = await getTasksByStage(id, page);
-        // data.tasks ? setTasks([...data.tasks]) : setTasks([])
         setTasks([...data.tasks]);
-        console.log(tasks)
         setHasMore(data.hasMore); 
     } catch (error) {
         console.error("Error fetching tasks:", error);
@@ -27,12 +25,12 @@ const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCa
 
     useEffect(() => {
       fetchProject(currentPage);
-    }, [taskIds, setTasks]);
+    }, [id, currentPage, stageData]);
 
-    const loadMoreTasks = () => {
+    const loadMoreTasks = async () => {
       const nextPage = currentPage + 1;
       setCurrentPage(nextPage);
-      fetchProject(nextPage);
+      await fetchProject(nextPage);
       setTasks((prevTasks) => [...prevTasks, ...tasks]);
   };
 
@@ -53,7 +51,7 @@ const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCa
     };
 
     return (
-        <section className='task_column'>
+        <section className='task_column' key={id}>
             <div className='task_column_heading'>
                 <p>{title}</p>
                 <button className="stage_delete" onClick={() => handleDelete(id)}>
