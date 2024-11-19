@@ -63,14 +63,13 @@ exports.postTask = async (req, res) => {
     const stage = await Stage.findById(stageId)
     
     try {
-      const formattedDueDate = new Date(dueDate).toISOString().split('T')[0];
-
+      // const formattedDueDate = new Date(dueDate).toISOString()  ;
       const newTask = new Task({
         title: name,
         description: description,
-        dueDate: formattedDueDate,
+        dueDate: dueDate,
         stageId,
-    });
+      });
 
     
     stage.taskIds.push(newTask._id)
@@ -112,7 +111,7 @@ exports.deleteTask = async (req, res) => {
 
 exports.updateTaskStage = async (req, res) => {
   const { taskId, stageId, position } = req.body;
-  console.log(taskId, stageId, position)
+
   try {
     const task = await Task.findById(taskId);
     if (!task) {
@@ -125,7 +124,7 @@ exports.updateTaskStage = async (req, res) => {
     if (!oldStage) {
       return res.status(404).json({ message: 'Old stage not found' });
     }
-    oldStage.taskIds = oldStage.taskIds.filter(id => !id.equals(taskObjectId));
+    oldStage.taskIds = oldStage.taskIds.filter(id => id && !id.equals(taskObjectId));
     
     const destinationStage = await Stage.findById(stageId);
     if (!destinationStage) {

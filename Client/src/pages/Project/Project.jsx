@@ -64,7 +64,6 @@ const Project = () => {
 
     const onDrop = async (destination, source) => {
       const { activeCard } = source;
-      console.log(destination, source)
       if (!destination) return;
     
       if (
@@ -73,7 +72,7 @@ const Project = () => {
       ) {
         return;
       }
-      if (
+      else if (
         activeCard.stageId === destination.id &&
         destination.index === activeCard.stageIndex + 1
       ) {
@@ -121,12 +120,9 @@ const Project = () => {
         if (sourceStageId !== destinationStageId) {
           await updateTaskStage(taskId, destinationStageId, newIndex);
         } else {
-          console.log(newTasksOrder)
           await updateTaskOrder(taskId, newTasksOrder);
         }
-        console.log("fetching")
         await fetchProject();
-        console.log("fetched")
 
       } catch (error) {
         console.error("Failed to update task stage/order in backend:", error);

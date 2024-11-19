@@ -19,7 +19,7 @@ const taskSchema = new mongoose.Schema({
     ref: 'User', // References the User model
   },
   dueDate: {
-    type: Date,
+    type: String,
   },
   createdAt: {
     type: String, // Assuming you want the date as a string
