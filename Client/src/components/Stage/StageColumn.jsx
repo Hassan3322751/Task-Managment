@@ -1,17 +1,17 @@
 import "./StageColumn.css";
 import TaskCard from "../TaskCard";
 import React, { useEffect, useState } from "react";
-import { addTask, deleteTask, getTasksByStage } from "../../services/tasks";
+import { addTask, deleteTask, getTask, patchTask, getTasksByStage } from "../../services/tasks";
 import deleteIcon from '../../assets/delete.png';
 import DropArea from "../DropArea/DropArea";
 
-const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCard, stageData, onDrop }) => {
+const StageColumn = ({ id, stage, title, handleDelete, activeCard, setActiveCard, stageData, onDrop }) => {
     const [tasks, setTasks] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [newTask, setNewTask] = useState({ name: "", description: "", dueDate: null });
+    const [newTask, setNewTask] = useState({ title: "", description: "", dueDate: null });
     const [currentPage, setCurrentPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
-    const [isLoading, setIsLoading] = useState(false); // Track loading state to avoid multiple simultaneous requests
+    const [isLoading, setIsLoading] = useState(false); 
 
     useEffect(() => {
         async function fnc(){
@@ -49,7 +49,6 @@ const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCa
             }
         }
     };
-    
 
     const handleTaskDelete = async (taskId) => {
         try {
@@ -59,13 +58,33 @@ const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCa
             console.error("Failed to delete task:", error);
         }
     };
+    const handleTaskEdit = async (taskId) => {
+        try {
+            const task = await getTask(taskId);
+            setNewTask(task);
+            setIsModalOpen(true)
+        } catch (error) {
+            console.error("Failed to get task task:", error);
+        }
+    };
+
+    const updateTask = async() => {
+        setIsModalOpen(false)
+        try {
+            await patchTask(newTask);
+            setNewTask({ title: "", description: "", dueDate: null });
+        } catch (error) {
+            console.error("Failed to update task:", error);
+        }
+    }
 
     const handleAddTask = async () => {
         setIsModalOpen(false);
         try {
             const addedTask = await addTask(newTask, id);
             setTasks((prevTasks) => [...prevTasks, addedTask]);
-            setNewTask({ name: "", description: "", dueDate: null });
+            setNewTask({ title: "", description: "", dueDate: null });
+            stage.taskIds.push(addedTask._id)
         } catch (error) {
             console.error("Failed to add task:", error);
         }
@@ -93,6 +112,7 @@ const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCa
                         description={task.description}
                         dueDate={task.dueDate}
                         handleTaskDelete={handleTaskDelete}
+                        handleTaskEdit={handleTaskEdit}
                         setActiveCard={setActiveCard}
                     />
                     <DropArea onDrop={() => onDrop({ id, index: index + 1 }, { activeCard })} />
@@ -103,6 +123,7 @@ const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCa
                     Load More
                 </button>
             )}
+
             {isModalOpen && (
                 <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex justify-center items-center">
                     <div className="bg-white p-6 rounded-lg shadow-lg w-96">
@@ -110,8 +131,8 @@ const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCa
                         <input
                             type="text"
                             placeholder="Task name"
-                            value={newTask.name}
-                            onChange={(e) => setNewTask({ ...newTask, name: e.target.value })}
+                            value={newTask.title}
+                            onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
                             className="border p-2 w-full mb-4"
                         />
                         <textarea
@@ -131,14 +152,24 @@ const StageColumn = ({ id, title, taskIds, handleDelete, activeCard, setActiveCa
                         />
                         <div className="flex justify-end">
                             <button
-                                onClick={() => setIsModalOpen(false)}
+                                onClick={() => {
+                                    setIsModalOpen(false) 
+                                    setNewTask({ title: "", description: "", dueDate: null })
+                                }}
                                 className="bg-gray-400 text-white p-2 rounded mr-2"
                             >
                                 Cancel
                             </button>
-                            <button onClick={handleAddTask} className="bg-blue-500 text-white p-2 rounded">
-                                Add Task
-                            </button>
+                            {
+                                newTask._id ?
+                                    <button onClick={() => updateTask()} className="bg-blue-500 text-white p-2 rounded">
+                                        Update
+                                    </button>
+                                    :
+                                    <button onClick={handleAddTask} className="bg-blue-500 text-white p-2 rounded">
+                                        Add Task
+                                    </button>
+                            }
                         </div>
                     </div>
                 </div>

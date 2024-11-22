@@ -56,16 +56,28 @@ exports.getTask = async (req, res) => {
   }
 }
 
+exports.updateTask = async (req, res) => {  
+  const {task} = req.body
+  try {
+    await Task.findByIdAndUpdate(task._id, task)
+    
+    res.status(200).send();
+  }
+  catch (err) {
+    console.error("UpdateTask Error: " + err);
+    return res.status(500).json({ status: false, msg: "Internal Server Error" });
+  }
+}
+
 exports.postTask = async (req, res) => {
     const {task, stageId} = req.body;
-    const {name, description, dueDate} = task
+    const {title, description, dueDate} = task
 
     const stage = await Stage.findById(stageId)
     
     try {
-      // const formattedDueDate = new Date(dueDate).toISOString()  ;
       const newTask = new Task({
-        title: name,
+        title: title,
         description: description,
         dueDate: dueDate,
         stageId,

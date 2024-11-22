@@ -1,5 +1,7 @@
 const Project = require("../models/Project");
 const Stage = require("../models/Stage");
+const Task = require("../models/Task");
+const { deleteMany } = require("../models/Task");
 const { getCurrentDate } = require("../utils/getDate");
 
 exports.getStage = async (req, res) => {
@@ -31,7 +33,6 @@ exports.postStage = async (req, res) => {
       name: stage,
       projectId,
       taskIds: [],
-      // createdAt: getCurrentDate(),
     });
     project.stages.push(newStage._id)
     await newStage.save();
@@ -57,6 +58,10 @@ exports.deleteStage = async (req, res) => {
     }
     const project = await Project.findById(stage.projectId)
     project.stages = project.stages.filter((s) => !s.equals(req.params.stageId));
+
+    stage.taskIds.forEach(async (taskId) => {
+      await Task.findByIdAndDelete(taskId)
+    })
 
     await Stage.findByIdAndDelete(req.params.stageId);
     await project.save()

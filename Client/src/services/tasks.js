@@ -9,6 +9,15 @@ export const getTask = async (taskId) => {
     }
 }
 
+export const patchTask = async (task) => {
+    try {
+        const res = await axiosInstance.put(`/tasks/update`, {task})
+        return res.data
+    } catch (error) {
+        console.log(error)
+    }
+}
+
 export const deleteTask = async (taskId) => {
     try {
         const res = await axiosInstance.delete(`/tasks/${taskId}`)

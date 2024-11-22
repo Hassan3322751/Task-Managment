@@ -57,6 +57,7 @@ const Project = () => {
         try {
             await deleteStage(stageId);
             setStages((prevStages) => prevStages.filter((curElm) => curElm._id !== stageId));
+            await fetchProject()
           } catch (error) {
             console.error('Failed to delete project:', error);
           }
@@ -143,12 +144,12 @@ const Project = () => {
             </button>
             <div className="stages">
             {
-              stages && stages.map((stage, index) => (
+              stages && stages.map((stage, index) => stage && (
                 <StageColumn
                   key={index} 
+                  stage={stage}
                   id={stage._id}
                   title={stage.name}
-                  taskIds={stage.taskIds}
                   handleDelete={handleDelete}
                   setActiveCard={setActiveCard}
                   activeCard={activeCard}
