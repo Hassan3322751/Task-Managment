@@ -11,7 +11,7 @@ const tasksRoutes = require("./routes/tasksRoutes");
 
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://task-managment-og13.vercel.app'],
+  origin: ['http://localhost:5173', 'https://task-managment-ten-kappa.vercel.app'],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
   allowedHeaders: ['Content-Type', 'Authorization'],
