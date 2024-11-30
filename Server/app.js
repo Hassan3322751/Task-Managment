@@ -11,10 +11,9 @@ const tasksRoutes = require("./routes/tasksRoutes");
 
 app.use(express.json());
 app.use(cors({
-  origin: ['http://localhost:5173', 'https://task-managment-ten-kappa.vercel.app'],
+  origin: process.env.FRONTEND_URL,
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE'], 
-  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
 const mongoUrl = process.env.MONGODB_URL;
