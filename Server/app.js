@@ -23,7 +23,7 @@ mongoose.connect(mongoUrl, err => {
   console.log("Mongodb connected...");
 });
 
-app.get('/', () => {
+app.get('/', (req, res) => {
   res.send({Status: 'Api working Fine'})
 })
 
