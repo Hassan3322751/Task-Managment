@@ -18,6 +18,10 @@ mongoose.connect(mongoUrl, err => {
   console.log("Mongodb connected...");
 });
 
+app.get('/', () => {
+  res.send({Status: 'Api working Fine'})
+})
+
 app.use("/api/projects", projectsRoutes);
 app.use("/api/stages", stageRoutes);
 app.use("/api/tasks", tasksRoutes);
