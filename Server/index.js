@@ -23,7 +23,7 @@ mongoose.connect(mongoUrl, err => {
 });
 
 app.get('/', (req, res) => {
-  res.send({Status: 'Api working Fine'})
+  res.status(200).send('Api Working Fine')
 })
 
 app.use("/api/projects", projectsRoutes);
